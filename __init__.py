@@ -145,7 +145,7 @@ class FDDEvaluator():
         metrics['detection']['ADD'] = valid_delay.mean()
         metrics['detection']['VDR'] = valid_delay.shape[0] / real_change_point.shape[0]
 
-        correct_diagnoses = fdd_cm[range(1, 21), range(1, 21)]
+        correct_diagnoses = fdd_cm[1:, 1:].diagonal()
         metrics['diagnosis']['CDR'] = correct_diagnoses / tp
         metrics['diagnosis']['CDR_total'] = correct_diagnoses.sum() / tp
         metrics['diagnosis']['MDR'] = (tp - correct_diagnoses.sum()) / tp
