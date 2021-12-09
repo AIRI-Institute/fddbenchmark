@@ -71,11 +71,14 @@ class FDDDataloader():
         self.labels = labels
         assert np.all(self.labels.index == self.df.index)
         self.window_size = window_size
-        assert step_size <= self.window_size
+        self.step_size = step_size
+        assert self.step_size <= self.window_size
         sample_seq = []
         for run_id in self.df.index.get_level_values(0).unique():
             _idx = self.df.index.get_locs([run_id])
-            sample_seq.extend(np.arange(_idx.min(), _idx.max() - self.window_size + 1, step_size))
+            sample_seq.extend(
+                np.arange(_idx.min(), _idx.max() - self.window_size + 1, self.step_size)
+            )
         self.sample_seq = np.random.permutation(sample_seq) if shuffle else np.array(sample_seq)
         n_samples = len(sample_seq)
         batch_seq = list(range(0, n_samples, batch_size)) if minibatch_training else [0]
@@ -96,9 +99,7 @@ class FDDDataloader():
             # preparing batch of labels
             sample_ids = self.sample_seq[self.batch_seq[self.iter]:self.batch_seq[self.iter+1]]
             row_idx = np.tile(sample_ids[:, None], (1, self.window_size)) + np.arange(self.window_size)
-            # maximum index reduction: if the fault was detected in a sample, the time of detection
-            # is defined as the last time stamp in a sample
-            row_isna = np.isnan(self.labels.values[row_idx]).max(axis=1)
+            row_isna = np.isnan(self.labels.values[row_idx]).min(axis=1)
             labels_batch = np.zeros(row_isna.shape[0])
             labels_batch[row_isna] = np.nan
             if ~row_isna.any():
@@ -119,11 +120,12 @@ class FDDDataloader():
             raise StopIteration
 
 class FDDEvaluator():
-    def __init__(self, window_size: int):
+    def __init__(self, window_size: int, step_size: int):
         self.window_size = window_size
+        self.step_size = step_size
         
     def evaluate(self, labels, pred):
-        # labels should be 0, 1, 2, etc.
+        # labels should be non-negative integer values, normal is 0
         assert np.all(np.sort(np.unique(labels)) == np.arange(labels.max() + 1))
         fdd_cm = confusion_matrix(labels, pred, labels=np.arange(labels.max() + 1))
         metrics = {'detection': dict(), 'diagnosis': dict()}
@@ -138,7 +140,7 @@ class FDDEvaluator():
             .groupby(['run_id'])['sample'].min() + self.window_size
         real_change_point = labels[labels != 0]
         real_change_point = real_change_point.reset_index()\
-            .groupby(['run_id'])['sample'].min()
+            .groupby(['run_id'])['sample'].min() + self.window_size - self.step_size
         detection_delay = (pred_change_point - real_change_point)
         valid_delay = detection_delay[detection_delay > 0]
 
@@ -150,3 +152,17 @@ class FDDEvaluator():
         metrics['diagnosis']['CDR_total'] = correct_diagnoses.sum() / tp
         metrics['diagnosis']['MDR'] = (tp - correct_diagnoses.sum()) / tp
         return metrics
+    
+    def print_metrics(self, labels, pred):
+        metrics = self.evaluate(labels, pred)
+        print('Detection metrics \n----------')
+        print('True Positive Rate (TPR): {:.4f}'.format(metrics['detection']['TPR']))
+        print('False Positive Rate (FPR): {:.4f}'.format(metrics['detection']['FPR']))
+        print('Average Detection Delay (ADD): {:.2f}'.format(metrics['detection']['ADD']))
+        print('Valid Delay Rate (VDR): {:.4f}'.format(metrics['detection']['VDR']))
+        print('\nDiagnosis metrics \n----------')
+        print('Correct Diagnosis Rate (CDR):')
+        for i in np.arange(labels.max()).astype('int'):
+            print('    Fault {:02d}: {:.4f}'.format(i+1, metrics['diagnosis']['CDR'][i]))
+        print('Total Correct Diagnosis Rate (Total CDR): {:.4f}'.format(metrics['diagnosis']['CDR_total']))
+        print('Misdiagnosis Rate (MDR): {:.4f}'.format(metrics['diagnosis']['MDR']))
