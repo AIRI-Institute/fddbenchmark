@@ -120,8 +120,7 @@ class FDDDataloader():
             raise StopIteration
 
 class FDDEvaluator():
-    def __init__(self, window_size: int, step_size: int):
-        self.window_size = window_size
+    def __init__(self, step_size: int):
         self.step_size = step_size
         
     def evaluate(self, labels, pred):
@@ -135,32 +134,33 @@ class FDDEvaluator():
         metrics['detection']['TPR'] = tp / total
         metrics['detection']['FPR'] = fdd_cm[0, 1:].sum() / total
 
-        pred_change_point = pred[pred != 0]
-        pred_change_point = pred_change_point.reset_index()\
-            .groupby(['run_id'])['sample'].min() + self.window_size
-        real_change_point = labels[labels != 0]
-        real_change_point = real_change_point.reset_index()\
-            .groupby(['run_id'])['sample'].min() + self.window_size - self.step_size
-        detection_delay = (pred_change_point - real_change_point)
-        valid_delay = detection_delay[detection_delay > 0]
-
-        metrics['detection']['ADD'] = valid_delay.mean()
-        metrics['detection']['VDR'] = valid_delay.shape[0] / real_change_point.shape[0]
+        real_change_point = labels[labels != 0].reset_index().groupby(['run_id'])['sample'].min()
+        pred_change_point = pred[pred != 0].reset_index().set_index(['run_id'])['sample']
+        pred_real_change_point = pd.merge(
+            pred_change_point, 
+            real_change_point, 
+            how='left', 
+            on='run_id', 
+            suffixes=('', '_real')
+        )
+        valid_change_point = pred_real_change_point['sample_real'] <= pred_real_change_point['sample']
+        pred_change_point = pred_change_point[valid_change_point].groupby(['run_id']).min()
+        detection_delay = pred_change_point - real_change_point + self.step_size
+        metrics['detection']['ADD'] = detection_delay.mean()
 
         correct_diagnoses = fdd_cm[1:, 1:].diagonal()
-        metrics['diagnosis']['CDR'] = correct_diagnoses / tp
+        metrics['diagnosis']['CDR'] = correct_diagnoses / fdd_cm[1:, 1:].sum(axis=1)
         metrics['diagnosis']['CDR_total'] = correct_diagnoses.sum() / tp
         metrics['diagnosis']['MDR'] = (tp - correct_diagnoses.sum()) / tp
         return metrics
     
     def print_metrics(self, labels, pred):
         metrics = self.evaluate(labels, pred)
-        print('Detection metrics \n----------')
+        print('Detection metrics\n-----------------')
         print('True Positive Rate (TPR): {:.4f}'.format(metrics['detection']['TPR']))
         print('False Positive Rate (FPR): {:.4f}'.format(metrics['detection']['FPR']))
         print('Average Detection Delay (ADD): {:.2f}'.format(metrics['detection']['ADD']))
-        print('Valid Delay Rate (VDR): {:.4f}'.format(metrics['detection']['VDR']))
-        print('\nDiagnosis metrics \n----------')
+        print('\nDiagnosis metrics\n-----------------')
         print('Correct Diagnosis Rate (CDR):')
         for i in np.arange(labels.max()).astype('int'):
             print('    Fault {:02d}: {:.4f}'.format(i+1, metrics['diagnosis']['CDR'][i]))
