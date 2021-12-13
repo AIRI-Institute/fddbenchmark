@@ -120,7 +120,8 @@ class FDDDataloader():
             raise StopIteration
 
 class FDDEvaluator():
-    def __init__(self, step_size: int):
+    def __init__(self, splitting_type: str, step_size: int):
+        self.splitting_type = splitting_type
         self.step_size = step_size
         
     def evaluate(self, labels, pred):
@@ -128,11 +129,9 @@ class FDDEvaluator():
         assert np.all(np.sort(np.unique(labels)) == np.arange(labels.max() + 1))
         fdd_cm = confusion_matrix(labels, pred, labels=np.arange(labels.max() + 1))
         metrics = {'detection': dict(), 'diagnosis': dict()}
-        tp = fdd_cm[1:, 1:].sum()
-        total = fdd_cm.sum()
         metrics['confusion_matrix'] = fdd_cm
-        metrics['detection']['TPR'] = tp / total
-        metrics['detection']['FPR'] = fdd_cm[0, 1:].sum() / total
+        metrics['detection']['TPR'] = fdd_cm[1:, 1:].sum() / fdd_cm[1:, :].sum()
+        metrics['detection']['FPR'] = fdd_cm[0, 1:].sum() / fdd_cm[0, :].sum()
 
         real_change_point = labels[labels != 0].reset_index().groupby(['run_id'])['sample'].min()
         pred_change_point = pred[pred != 0].reset_index().set_index(['run_id'])['sample']
@@ -147,8 +146,9 @@ class FDDEvaluator():
         pred_change_point = pred_change_point[valid_change_point].groupby(['run_id']).min()
         detection_delay = pred_change_point - real_change_point + self.step_size
         metrics['detection']['ADD'] = detection_delay.mean()
-
+        
         correct_diagnoses = fdd_cm[1:, 1:].diagonal()
+        tp = fdd_cm[1:, 1:].sum()
         metrics['diagnosis']['CDR'] = correct_diagnoses / fdd_cm[1:, 1:].sum(axis=1)
         metrics['diagnosis']['CDR_total'] = correct_diagnoses.sum() / tp
         metrics['diagnosis']['MDR'] = (tp - correct_diagnoses.sum()) / tp
