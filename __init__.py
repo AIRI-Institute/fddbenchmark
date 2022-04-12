@@ -144,7 +144,7 @@ class FDDEvaluator():
         )
         valid_change_point = pred_real_change_point['sample_real'] <= pred_real_change_point['sample']
         pred_change_point = pred_change_point[valid_change_point].groupby(['run_id']).min()
-        detection_delay = pred_change_point - real_change_point + self.step_size
+        detection_delay = (pred_change_point - real_change_point) * self.step_size
         metrics['detection']['ADD'] = detection_delay.mean()
         
         correct_diagnoses = fdd_cm[1:, 1:].diagonal()
