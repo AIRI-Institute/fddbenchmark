@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from tqdm import tqdm
+import zipfile
+import os
 
 class FDDDataset():
     def __init__(self, name: str, splitting_type: str):
@@ -12,11 +14,12 @@ class FDDDataset():
         self.labels = None
         self.train_mask = None
         self.test_mask = None
-        available_datasets = ['small_tep']
+        available_datasets = ['small_tep', 'reinartz_tep']
         available_datasets_str = ', '.join(available_datasets)
         if self.name == 'small_tep':
             self.load_small_tep()
-            self.n_faults = 20
+        if self.name == 'reinartz_tep':
+            self.load_reinartz_tep()
         else:
             raise Exception(
                 f'{name} is an unknown dataset. Available datasets are: {available_datasets_str}'
@@ -32,8 +35,9 @@ class FDDDataset():
             download_files(['dataset.csv', 'labels.csv', 'test_mask.csv', 'normal_train_mask.csv'])
             self.df = pd.read_csv('dataset.csv', index_col=['run_id', 'sample'])
             self.labels = pd.read_csv('labels.csv', index_col=['run_id', 'sample'])['labels']
-            self.train_mask = pd.read_csv('normal_train_mask.csv', index_col=['run_id', 'sample'])['train_mask']
+            self.train_mask = pd.read_csv('train_mask.csv', index_col=['run_id', 'sample'])['train_mask']
             self.test_mask = pd.read_csv('test_mask.csv', index_col=['run_id', 'sample'])['test_mask']
+            self.labels[self.train_mask] = np.nan
         if self.splitting_type == 'semisupervised':
             download_files([
                 'dataset.csv', 
@@ -49,6 +53,65 @@ class FDDDataset():
             unlabeled_train_mask = pd.read_csv('unlabeled_train_mask.csv', index_col=['run_id', 'sample'])\
                 ['unlabeled_train_mask']
             self.labels.loc[unlabeled_train_mask] = np.nan
+    
+    def load_reinartz_tep(self):
+        ref_path = 'data/reinartz_tep/'
+        if not os.path.exists(ref_path):
+            os.makedirs(ref_path)
+        
+        import gdown
+        url = "https://drive.google.com/uc?id=1P5ULhsMuyWxZDhtcXa8wN2Fpbdee78Zm"
+        zfile_path = 'data/reinartz_tep.zip'
+        if not os.path.exists(zfile_path):
+            gdown.download(url, zfile_path)
+        
+        extracting_files(zfile_path, ref_path)
+        self.df = read_csv_pgbar(ref_path + 'dataset.csv', index_col=['run_id', 'sample'])
+        self.labels = read_csv_pgbar(ref_path + 'labels.csv', index_col=['run_id', 'sample'])['labels']
+        train_mask = read_csv_pgbar(ref_path + 'train_mask.csv', index_col=['run_id', 'sample'])['train_mask']
+        test_mask = read_csv_pgbar(ref_path + 'test_mask.csv', index_col=['run_id', 'sample'])['test_mask']
+        self.train_mask = train_mask.astype('boolean')
+        self.test_mask = test_mask.astype('boolean')
+        
+        if self.splitting_type == 'supervised':
+            pass
+        if self.splitting_type == 'unsupervised':
+            self.labels[self.train_mask] = np.nan
+        if self.splitting_type == 'semisupervised':
+            labeled_train_mask = read_csv_pgbar(
+                ref_path + 'labeled_train_mask.csv', 
+                index_col=['run_id', 'sample'])['labeled_train_mask']
+            self.labels.loc[~labeled_train_mask.astype('boolean')] = np.nan
+
+def extracting_files(zfile_path, ref_path):
+    with zipfile.ZipFile(zfile_path, 'r') as zfile:
+        for entry_info in zfile.infolist():
+            if os.path.exists(ref_path + entry_info.filename):
+                continue
+            input_file = zfile.open(entry_info.filename)
+            target_file = open(ref_path + entry_info.filename, 'wb')
+            bsize = 1024 * 10000
+            block = input_file.read(bsize)
+            with tqdm(
+                total=entry_info.file_size, 
+                desc=f'Extracting {entry_info.filename}', 
+                unit='B', 
+                unit_scale=True, 
+                unit_divisor=1024) as pbar:
+                while block:
+                    target_file.write(block)
+                    block = input_file.read(bsize)
+                    pbar.update(bsize)
+
+def read_csv_pgbar(csv_path, index_col, chunksize=1024*100):
+    rows = sum(1 for _ in open(csv_path, 'r')) - 1
+    chunk_list = []
+    with tqdm(total=rows, desc=f'Reading {csv_path}') as pbar:
+        for chunk in pd.read_csv(csv_path, index_col=index_col, chunksize=chunksize):
+            chunk_list.append(chunk)
+            pbar.update(len(chunk))
+    df = pd.concat((f for f in chunk_list), axis=0)
+    return df
 
 def download_files(file_names):
     for fname in tqdm(file_names, desc='Downloading'):
@@ -74,7 +137,9 @@ class FDDDataloader():
         self.step_size = step_size
         assert self.step_size <= self.window_size
         sample_seq = []
-        for run_id in self.df.index.get_level_values(0).unique():
+        for run_id in tqdm(
+            self.df.index.get_level_values(0).unique(), 
+            desc='Creating sequence of samples'):
             _idx = self.df.index.get_locs([run_id])
             sample_seq.extend(
                 np.arange(_idx.min(), _idx.max() - self.window_size + 1, self.step_size)
@@ -103,7 +168,7 @@ class FDDDataloader():
             labels_batch = np.zeros(row_isna.shape[0])
             labels_batch[row_isna] = np.nan
             if ~row_isna.any():
-                # maximum label reduction: if at least a single time stamp is fault
+                # maximum label reduction: if at least a single value is fault
                 # then the entire sample is fault
                 labels_batch[~row_isna] = self.labels.values[row_idx][~row_isna].max(axis=1)
             # an index of a sample is an index of the last time stamp in the sample
