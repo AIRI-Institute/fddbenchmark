@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 import numpy as np
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics.cluster import normalized_mutual_info_score, adjusted_rand_score
 from tqdm import tqdm
 import zipfile
 import os
@@ -14,12 +15,14 @@ class FDDDataset():
         self.labels = None
         self.train_mask = None
         self.test_mask = None
-        available_datasets = ['small_tep', 'reinartz_tep']
+        available_datasets = ['small_tep', 'reinartz_tep', 'rieth_tep']
         available_datasets_str = ', '.join(available_datasets)
         if self.name == 'small_tep':
             self.load_small_tep()
         if self.name == 'reinartz_tep':
             self.load_reinartz_tep()
+        if self.name == 'rieth_tep':
+            self.load_rieth_tep()
         else:
             raise Exception(
                 f'{name} is an unknown dataset. Available datasets are: {available_datasets_str}'
@@ -62,6 +65,35 @@ class FDDDataset():
         import gdown
         url = "https://drive.google.com/uc?id=1P5ULhsMuyWxZDhtcXa8wN2Fpbdee78Zm"
         zfile_path = 'data/reinartz_tep.zip'
+        if not os.path.exists(zfile_path):
+            gdown.download(url, zfile_path)
+        
+        extracting_files(zfile_path, ref_path)
+        self.df = read_csv_pgbar(ref_path + 'dataset.csv', index_col=['run_id', 'sample'])
+        self.labels = read_csv_pgbar(ref_path + 'labels.csv', index_col=['run_id', 'sample'])['labels']
+        train_mask = read_csv_pgbar(ref_path + 'train_mask.csv', index_col=['run_id', 'sample'])['train_mask']
+        test_mask = read_csv_pgbar(ref_path + 'test_mask.csv', index_col=['run_id', 'sample'])['test_mask']
+        self.train_mask = train_mask.astype('boolean')
+        self.test_mask = test_mask.astype('boolean')
+        
+        if self.splitting_type == 'supervised':
+            pass
+        if self.splitting_type == 'unsupervised':
+            self.labels[self.train_mask] = np.nan
+        if self.splitting_type == 'semisupervised':
+            labeled_train_mask = read_csv_pgbar(
+                ref_path + 'labeled_train_mask.csv', 
+                index_col=['run_id', 'sample'])['labeled_train_mask']
+            self.labels.loc[~labeled_train_mask.astype('boolean')] = np.nan
+
+    def load_rieth_tep(self):
+        ref_path = 'data/rieth_tep/'
+        if not os.path.exists(ref_path):
+            os.makedirs(ref_path)
+        
+        import gdown
+        url = "https://drive.google.com/uc?id=1A1Nb5Pi1mutdlY53l1Qn-8gX1sOKWtYM"
+        zfile_path = 'data/rieth_tep.zip'
         if not os.path.exists(zfile_path):
             gdown.download(url, zfile_path)
         
@@ -217,6 +249,9 @@ class FDDEvaluator():
         metrics['diagnosis']['CDR'] = correct_diagnoses / fdd_cm[1:, 1:].sum(axis=1)
         metrics['diagnosis']['CDR_total'] = correct_diagnoses.sum() / tp
         metrics['diagnosis']['MDR'] = (tp - correct_diagnoses.sum()) / tp
+        
+        metrics['clustering']['NMI'] = normalized_mutual_info_score(labels, pred)
+        metrics['clustering']['ARI'] = adjusted_rand_score(labels, pred)
         return metrics
     
     def print_metrics(self, labels, pred):
@@ -231,3 +266,6 @@ class FDDEvaluator():
             print('    Fault {:02d}: {:.4f}'.format(i+1, metrics['diagnosis']['CDR'][i]))
         print('Total Correct Diagnosis Rate (Total CDR): {:.4f}'.format(metrics['diagnosis']['CDR_total']))
         print('Misdiagnosis Rate (MDR): {:.4f}'.format(metrics['diagnosis']['MDR']))
+        print('\nClustering metrics\n-----------------')
+        print('Adjusted Rand Index (ARI): {:.4f}'.format(metrics['clustering']['NMI']))
+        print('Normalized Mutual Information (NMI): {:.4f}'.format(metrics['clustering']['ARI']))
