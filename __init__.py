@@ -225,7 +225,7 @@ class FDDEvaluator():
         # labels should be non-negative integer values, normal is 0
         assert np.all(np.sort(np.unique(labels)) == np.arange(labels.max() + 1))
         fdd_cm = confusion_matrix(labels, pred, labels=np.arange(labels.max() + 1))
-        metrics = {'detection': dict(), 'diagnosis': dict()}
+        metrics = {'detection': dict(), 'diagnosis': dict(), 'clustering': dict()}
         metrics['confusion_matrix'] = fdd_cm
         metrics['detection']['TPR'] = fdd_cm[1:, 1:].sum() / fdd_cm[1:, :].sum()
         metrics['detection']['FPR'] = fdd_cm[0, 1:].sum() / fdd_cm[0, :].sum()
