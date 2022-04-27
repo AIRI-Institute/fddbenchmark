@@ -18,16 +18,17 @@ class FDDDataset():
         self.test_mask = None
         available_datasets = ['small_tep', 'reinartz_tep', 'rieth_tep']
         available_datasets_str = ', '.join(available_datasets)
+        if self.name not in available_datasets:
+            raise Exception(
+                f'{name} is an unknown dataset. Available datasets are: {available_datasets_str}'
+            )
         if self.name == 'small_tep':
             self.load_small_tep()
         if self.name == 'reinartz_tep':
             self.load_reinartz_tep()
         if self.name == 'rieth_tep':
             self.load_rieth_tep()
-        else:
-            raise Exception(
-                f'{name} is an unknown dataset. Available datasets are: {available_datasets_str}'
-            )
+        
     def load_small_tep(self):
         if self.splitting_type == 'supervised':
             download_files(['dataset.csv', 'labels.csv', 'train_mask.csv', 'test_mask.csv'])
