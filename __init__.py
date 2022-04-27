@@ -270,8 +270,8 @@ class FDDEvaluator():
         print('Total Correct Diagnosis Rate (Total CDR): {:.4f}'.format(metrics['diagnosis']['CDR_total']))
         print('Misdiagnosis Rate (MDR): {:.4f}'.format(metrics['diagnosis']['MDR']))
         print('\nClustering metrics\n-----------------')
-        print('Adjusted Rand Index (ARI): {:.4f}'.format(metrics['clustering']['NMI']))
-        print('Normalized Mutual Information (NMI): {:.4f}'.format(metrics['clustering']['ARI']))
+        print('Adjusted Rand Index (ARI): {:.4f}'.format(metrics['clustering']['ARI']))
+        print('Normalized Mutual Information (NMI): {:.4f}'.format(metrics['clustering']['NMI']))
         print('Unsupervised Clustering Accuracy (ACC): {:.4f}'.format(metrics['clustering']['ACC']))
 
 def cluster_acc(y_true, y_pred):
