@@ -1,4 +1,3 @@
-import requests
 import pandas as pd
 import numpy as np
 from sklearn.metrics import confusion_matrix
@@ -30,34 +29,33 @@ class FDDDataset():
             self.load_rieth_tep()
         
     def load_small_tep(self):
+        ref_path = 'data/small_tep/'
+        if not os.path.exists(ref_path):
+            os.makedirs(ref_path)
+        
+        import gdown
+        url = "https://drive.google.com/uc?id=1yZaBWq7vTD2jT_tpsc_EUqA3f_7yPk3n"
+        zfile_path = 'data/small_tep.zip'
+        if not os.path.exists(zfile_path):
+            gdown.download(url, zfile_path)
+        
+        extracting_files(zfile_path, ref_path)
+        self.df = read_csv_pgbar(ref_path + 'dataset.csv', index_col=['run_id', 'sample'])
+        self.labels = read_csv_pgbar(ref_path + 'labels.csv', index_col=['run_id', 'sample'])['labels']
+        train_mask = read_csv_pgbar(ref_path + 'train_mask.csv', index_col=['run_id', 'sample'])['train_mask']
+        test_mask = read_csv_pgbar(ref_path + 'test_mask.csv', index_col=['run_id', 'sample'])['test_mask']
+        self.train_mask = train_mask.astype('boolean')
+        self.test_mask = test_mask.astype('boolean')
+        
         if self.splitting_type == 'supervised':
-            download_files(['dataset.csv', 'labels.csv', 'train_mask.csv', 'test_mask.csv'])
-            self.df = pd.read_csv('dataset.csv', index_col=['run_id', 'sample'])
-            self.labels = pd.read_csv('labels.csv', index_col=['run_id', 'sample'])['labels']
-            self.train_mask = pd.read_csv('train_mask.csv', index_col=['run_id', 'sample'])['train_mask']
-            self.test_mask = pd.read_csv('test_mask.csv', index_col=['run_id', 'sample'])['test_mask']
+            pass
         if self.splitting_type == 'unsupervised':
-            download_files(['dataset.csv', 'labels.csv', 'test_mask.csv', 'normal_train_mask.csv'])
-            self.df = pd.read_csv('dataset.csv', index_col=['run_id', 'sample'])
-            self.labels = pd.read_csv('labels.csv', index_col=['run_id', 'sample'])['labels']
-            self.train_mask = pd.read_csv('train_mask.csv', index_col=['run_id', 'sample'])['train_mask']
-            self.test_mask = pd.read_csv('test_mask.csv', index_col=['run_id', 'sample'])['test_mask']
             self.labels[self.train_mask] = np.nan
         if self.splitting_type == 'semisupervised':
-            download_files([
-                'dataset.csv', 
-                'labels.csv', 
-                'test_mask.csv', 
-                'train_mask.csv', 
-                'unlabeled_train_mask.csv'
-            ])
-            self.df = pd.read_csv('dataset.csv', index_col=['run_id', 'sample'])
-            self.labels = pd.read_csv('labels.csv', index_col=['run_id', 'sample'])['labels']
-            self.train_mask = pd.read_csv('train_mask.csv', index_col=['run_id', 'sample'])['train_mask']
-            self.test_mask = pd.read_csv('test_mask.csv', index_col=['run_id', 'sample'])['test_mask']
-            unlabeled_train_mask = pd.read_csv('unlabeled_train_mask.csv', index_col=['run_id', 'sample'])\
-                ['unlabeled_train_mask']
-            self.labels.loc[unlabeled_train_mask] = np.nan
+            unlabeled_train_mask = read_csv_pgbar(
+                ref_path + 'unlabeled_train_mask.csv', 
+                index_col=['run_id', 'sample'])['unlabeled_train_mask']
+            self.labels.loc[unlabeled_train_mask.astype('boolean')] = np.nan
     
     def load_reinartz_tep(self):
         ref_path = 'data/reinartz_tep/'
@@ -146,11 +144,6 @@ def read_csv_pgbar(csv_path, index_col, chunksize=1024*100):
             pbar.update(len(chunk))
     df = pd.concat((f for f in chunk_list), axis=0)
     return df
-
-def download_files(file_names):
-    for fname in tqdm(file_names, desc='Downloading'):
-        url = f'https://raw.githubusercontent.com/airi-industrial-ai/fdd-datasets/main/small_tep/{fname}'
-        open(fname, 'wb').write(requests.get(url).content)
 
 class FDDDataloader():
     def __init__(
