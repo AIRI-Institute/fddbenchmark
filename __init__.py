@@ -271,9 +271,9 @@ class FDDEvaluator():
         
         print('\nClassification metrics\n-----------------')
         print('TPR/FPR:')
-        print('    Normal state: {:.4f}/{:.4f}'.format(metrics['combined']['TPR'][0], metrics['combined']['FPR'][0]))
+        print('    Normal state: {:.4f}/{:.4f}'.format(metrics['classification']['TPR'][0], metrics['combined']['FPR'][0]))
         for i in np.arange(1, labels.max()).astype('int'):
-            print('    Fault {:02d}: {:.4f}/{:.4f}'.format(i, metrics['combined']['TPR'][i], metrics['combined']['FPR'][i]))
+            print('    Fault {:02d}: {:.4f}/{:.4f}'.format(i, metrics['classification']['TPR'][i], metrics['combined']['FPR'][i]))
 
         print('\nClustering metrics\n-----------------')
         print('Adjusted Rand Index (ARI): {:.4f}'.format(metrics['clustering']['ARI']))
