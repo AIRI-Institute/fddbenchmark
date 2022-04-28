@@ -245,9 +245,9 @@ class FDDEvaluator():
         metrics['diagnosis']['CDR_total'] = correct_diagnoses.sum() / tp
         metrics['diagnosis']['MDR'] = (tp - correct_diagnoses.sum()) / tp
         
-        metrics['clustering']['ACC'] = cluster_acc(labels, pred)
-        metrics['clustering']['NMI'] = normalized_mutual_info_score(labels, pred)
-        metrics['clustering']['ARI'] = adjusted_rand_score(labels, pred)
+        metrics['clustering']['ACC'] = cluster_acc(labels.values, pred.values)
+        metrics['clustering']['NMI'] = normalized_mutual_info_score(labels.values, pred.values)
+        metrics['clustering']['ARI'] = adjusted_rand_score(labels.values, pred.values)
         return metrics
     
     def print_metrics(self, labels, pred):
