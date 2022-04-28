@@ -219,8 +219,9 @@ class FDDEvaluator():
     def evaluate(self, labels, pred):
         # labels should be non-negative integer values, normal is 0
         assert np.all(np.sort(np.unique(labels)) == np.arange(labels.max() + 1))
+        # confustion matrix: rows are truth classes, columns are predicted classes
         fdd_cm = confusion_matrix(labels, pred, labels=np.arange(labels.max() + 1))
-        metrics = {'detection': dict(), 'diagnosis': dict(), 'clustering': dict()}
+        metrics = {'detection': dict(), 'diagnosis': dict(), 'clustering': dict(), 'classification': dict()}
         metrics['confusion_matrix'] = fdd_cm
         metrics['detection']['TPR'] = fdd_cm[1:, 1:].sum() / fdd_cm[1:, :].sum()
         metrics['detection']['FPR'] = fdd_cm[0, 1:].sum() / fdd_cm[0, :].sum()
@@ -239,11 +240,15 @@ class FDDEvaluator():
         detection_delay = (pred_change_point - real_change_point) * self.step_size
         metrics['detection']['ADD'] = detection_delay.mean()
         
-        correct_diagnoses = fdd_cm[1:, 1:].diagonal()
+        correct_diagnosis = fdd_cm[1:, 1:].diagonal()
         tp = fdd_cm[1:, 1:].sum()
-        metrics['diagnosis']['CDR'] = correct_diagnoses / fdd_cm[1:, 1:].sum(axis=1)
-        metrics['diagnosis']['CDR_total'] = correct_diagnoses.sum() / tp
-        metrics['diagnosis']['MDR'] = (tp - correct_diagnoses.sum()) / tp
+        metrics['diagnosis']['CDR'] = correct_diagnosis / fdd_cm[1:, 1:].sum(axis=1)
+        metrics['diagnosis']['CDR_total'] = correct_diagnosis.sum() / tp
+        metrics['diagnosis']['MDR'] = (tp - correct_diagnosis.sum()) / tp
+        
+        correct_classification = fdd_cm.diagonal()
+        metrics['classification']['TPR'] = correct_classification / fdd_cm.sum(axis=1)
+        metrics['classification']['FPR'] = (fdd_cm.sum(axis=0) - correct_classification) / fdd_cm.sum(axis=0)
         
         metrics['clustering']['ACC'] = cluster_acc(labels.values, pred.values)
         metrics['clustering']['NMI'] = normalized_mutual_info_score(labels.values, pred.values)
@@ -256,12 +261,20 @@ class FDDEvaluator():
         print('True Positive Rate (TPR): {:.4f}'.format(metrics['detection']['TPR']))
         print('False Positive Rate (FPR): {:.4f}'.format(metrics['detection']['FPR']))
         print('Average Detection Delay (ADD): {:.2f}'.format(metrics['detection']['ADD']))
+        
         print('\nDiagnosis metrics\n-----------------')
         print('Correct Diagnosis Rate (CDR):')
         for i in np.arange(labels.max()).astype('int'):
             print('    Fault {:02d}: {:.4f}'.format(i+1, metrics['diagnosis']['CDR'][i]))
         print('Total Correct Diagnosis Rate (Total CDR): {:.4f}'.format(metrics['diagnosis']['CDR_total']))
         print('Misdiagnosis Rate (MDR): {:.4f}'.format(metrics['diagnosis']['MDR']))
+        
+        print('\nClassification metrics\n-----------------')
+        print('TPR/FPR:')
+        print('    Normal state: {:.4f}/{:.4f}'.format(metrics['combined']['TPR'][0], metrics['combined']['FPR'][0]))
+        for i in np.arange(1, labels.max()).astype('int'):
+            print('    Fault {:02d}: {:.4f}/{:.4f}'.format(i, metrics['combined']['TPR'][i], metrics['combined']['FPR'][i]))
+
         print('\nClustering metrics\n-----------------')
         print('Adjusted Rand Index (ARI): {:.4f}'.format(metrics['clustering']['ARI']))
         print('Normalized Mutual Information (NMI): {:.4f}'.format(metrics['clustering']['NMI']))
