@@ -248,7 +248,7 @@ class FDDEvaluator():
         
         correct_classification = fdd_cm.diagonal()
         metrics['classification']['TPR'] = correct_classification / fdd_cm.sum(axis=1)
-        metrics['classification']['FPR'] = (fdd_cm.sum(axis=0) - correct_classification) / fdd_cm.sum(axis=0)
+        metrics['classification']['FPR'] = fdd_cm[0] / fdd_cm[0].sum()
         
         metrics['clustering']['ACC'] = cluster_acc(labels.values, pred.values)
         metrics['clustering']['NMI'] = normalized_mutual_info_score(labels.values, pred.values)
