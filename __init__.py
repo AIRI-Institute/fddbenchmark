@@ -259,7 +259,7 @@ class FDDEvaluator():
         
         correct_classification = fdd_cm.diagonal()
         metrics['classification']['TPR'] = correct_classification / fdd_cm.sum(axis=1)
-        metrics['classification']['FPR'] = (fdd_cm.sum(axis=0) - correct_classification) / fdd_cm.sum(axis=0)
+        metrics['classification']['FPR'] = fdd_cm[0] / fdd_cm[0].sum()
         
         metrics['clustering']['ACC'] = cluster_acc(labels.values, pred.values)
         metrics['clustering']['NMI'] = normalized_mutual_info_score(labels.values, pred.values)
@@ -282,9 +282,8 @@ class FDDEvaluator():
         
         print('\nClassification metrics\n-----------------')
         print('TPR/FPR:')
-        print('    Normal state: {:.4f}/{:.4f}'.format(metrics['classification']['TPR'][0], metrics['classification']['FPR'][0]))
-        for i in np.arange(1, labels.max()).astype('int'):
-            print('    Fault {:02d}: {:.4f}/{:.4f}'.format(i, metrics['classification']['TPR'][i], metrics['classification']['FPR'][i]))
+        for i in np.arange(labels.max()).astype('int'):
+            print('    Fault {:02d}: {:.4f}/{:.4f}'.format(i+1, metrics['classification']['TPR'][i+1], metrics['classification']['FPR'][i+1]))
 
         print('\nClustering metrics\n-----------------')
         print('Adjusted Rand Index (ARI): {:.4f}'.format(metrics['clustering']['ARI']))
