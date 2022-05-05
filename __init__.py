@@ -6,6 +6,7 @@ from scipy.optimize import linear_sum_assignment as linear_assignment
 from tqdm import tqdm
 import zipfile
 import os
+import requests
 
 class FDDDataset():
     def __init__(self, name: str, splitting_type: str):
@@ -32,12 +33,10 @@ class FDDDataset():
         ref_path = 'data/small_tep/'
         if not os.path.exists(ref_path):
             os.makedirs(ref_path)
-        
-        import gdown
-        url = "https://drive.google.com/uc?id=1yZaBWq7vTD2jT_tpsc_EUqA3f_7yPk3n"
+        url = "https://industrial-makarov.obs.ru-moscow-1.hc.sbercloud.ru/small_tep.zip"
         zfile_path = 'data/small_tep.zip'
         if not os.path.exists(zfile_path):
-            gdown.download(url, zfile_path)
+            download_pgbar(url, zfile_path, fname='small_tep.zip')
         
         extracting_files(zfile_path, ref_path)
         self.df = read_csv_pgbar(ref_path + 'dataset.csv', index_col=['run_id', 'sample'])
@@ -61,12 +60,10 @@ class FDDDataset():
         ref_path = 'data/reinartz_tep/'
         if not os.path.exists(ref_path):
             os.makedirs(ref_path)
-        
-        import gdown
-        url = "https://drive.google.com/uc?id=1P5ULhsMuyWxZDhtcXa8wN2Fpbdee78Zm"
+        url = "https://industrial-makarov.obs.ru-moscow-1.hc.sbercloud.ru/reinartz_tep.zip"
         zfile_path = 'data/reinartz_tep.zip'
         if not os.path.exists(zfile_path):
-            gdown.download(url, zfile_path)
+            download_pgbar(url, zfile_path, fname='reinartz_tep.zip')
         
         extracting_files(zfile_path, ref_path)
         self.df = read_csv_pgbar(ref_path + 'dataset.csv', index_col=['run_id', 'sample'])
@@ -90,12 +87,10 @@ class FDDDataset():
         ref_path = 'data/rieth_tep/'
         if not os.path.exists(ref_path):
             os.makedirs(ref_path)
-        
-        import gdown
-        url = "https://drive.google.com/uc?id=1A1Nb5Pi1mutdlY53l1Qn-8gX1sOKWtYM"
+        url = "https://industrial-makarov.obs.ru-moscow-1.hc.sbercloud.ru/rieth_tep.zip"
         zfile_path = 'data/rieth_tep.zip'
         if not os.path.exists(zfile_path):
-            gdown.download(url, zfile_path)
+            download_pgbar(url, zfile_path, fname='rieth_tep.zip')
         
         extracting_files(zfile_path, ref_path)
         self.df = read_csv_pgbar(ref_path + 'dataset.csv', index_col=['run_id', 'sample'])
@@ -134,6 +129,22 @@ def extracting_files(zfile_path, ref_path):
                     target_file.write(block)
                     block = input_file.read(bsize)
                     pbar.update(bsize)
+            input_file.close()
+            target_file.close()
+
+def download_pgbar(url, zfile_path, fname):
+    resp = requests.get(url, stream=True)
+    total = int(resp.headers.get("Content-Length"))
+    with open(zfile_path, 'wb') as file: 
+        with tqdm(
+            total=total,
+            desc=f'Downloading {fname}',
+            unit='B',
+            unit_scale=True,
+            unit_divisor=1024) as pbar:
+            for data in resp.iter_content(chunk_size=1024):
+                file.write(data)
+                pbar.update(len(data))
 
 def read_csv_pgbar(csv_path, index_col, chunksize=1024*100):
     rows = sum(1 for _ in open(csv_path, 'r')) - 1
