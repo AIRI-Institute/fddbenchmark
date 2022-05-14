@@ -269,7 +269,7 @@ class FDDEvaluator():
     
     def print_metrics(self, labels, pred):
         metrics = self.evaluate(labels, pred)
-        print('FDD metrics\n-----------------\n')
+        print('FDD metrics\n-----------------')
         
         print('TPR/FPR:')
         for i in np.arange(labels.max()).astype('int'):
@@ -280,7 +280,7 @@ class FDDEvaluator():
         print('Average Detection Delay (ADD): {:.2f}'.format(metrics['detection']['ADD']))
         print('Total Correct Diagnosis Rate (Total CDR): {:.4f}'.format(metrics['diagnosis']['CDR_total']))
 
-        print('Clustering metrics\n-----------------\n')
+        print('\nClustering metrics\n-----------------')
         print('Adjusted Rand Index (ARI): {:.4f}'.format(metrics['clustering']['ARI']))
         print('Normalized Mutual Information (NMI): {:.4f}'.format(metrics['clustering']['NMI']))
         print('Unsupervised Clustering Accuracy (ACC): {:.4f}'.format(metrics['clustering']['ACC']))
