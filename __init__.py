@@ -269,24 +269,18 @@ class FDDEvaluator():
     
     def print_metrics(self, labels, pred):
         metrics = self.evaluate(labels, pred)
-        print('Detection metrics\n-----------------')
-        print('True Positive Rate (TPR): {:.4f}'.format(metrics['detection']['TPR']))
-        print('False Positive Rate (FPR): {:.4f}'.format(metrics['detection']['FPR']))
-        print('Average Detection Delay (ADD): {:.2f}'.format(metrics['detection']['ADD']))
+        print('FDD metrics\n-----------------\n')
         
-        print('\nDiagnosis metrics\n-----------------')
-        print('Correct Diagnosis Rate (CDR):')
-        for i in np.arange(labels.max()).astype('int'):
-            print('    Fault {:02d}: {:.4f}'.format(i+1, metrics['diagnosis']['CDR'][i]))
-        print('Total Correct Diagnosis Rate (Total CDR): {:.4f}'.format(metrics['diagnosis']['CDR_total']))
-        print('Misdiagnosis Rate (MDR): {:.4f}'.format(metrics['diagnosis']['MDR']))
-        
-        print('\nClassification metrics\n-----------------')
         print('TPR/FPR:')
         for i in np.arange(labels.max()).astype('int'):
             print('    Fault {:02d}: {:.4f}/{:.4f}'.format(i+1, metrics['classification']['TPR'][i+1], metrics['classification']['FPR'][i+1]))
 
-        print('\nClustering metrics\n-----------------')
+        print('Detection TPR: {:.4f}'.format(metrics['detection']['TPR']))
+        print('Detection FPR: {:.4f}'.format(metrics['detection']['FPR']))
+        print('Average Detection Delay (ADD): {:.2f}'.format(metrics['detection']['ADD']))
+        print('Total Correct Diagnosis Rate (Total CDR): {:.4f}'.format(metrics['diagnosis']['CDR_total']))
+
+        print('Clustering metrics\n-----------------\n')
         print('Adjusted Rand Index (ARI): {:.4f}'.format(metrics['clustering']['ARI']))
         print('Normalized Mutual Information (NMI): {:.4f}'.format(metrics['clustering']['NMI']))
         print('Unsupervised Clustering Accuracy (ACC): {:.4f}'.format(metrics['clustering']['ACC']))
