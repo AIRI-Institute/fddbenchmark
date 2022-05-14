@@ -254,9 +254,7 @@ class FDDEvaluator():
         
         correct_diagnosis = fdd_cm[1:, 1:].diagonal()
         tp = fdd_cm[1:, 1:].sum()
-        metrics['diagnosis']['CDR'] = correct_diagnosis / fdd_cm[1:, 1:].sum(axis=1)
         metrics['diagnosis']['CDR_total'] = correct_diagnosis.sum() / tp
-        metrics['diagnosis']['MDR'] = (tp - correct_diagnosis.sum()) / tp
         
         correct_classification = fdd_cm.diagonal()
         metrics['classification']['TPR'] = correct_classification / fdd_cm.sum(axis=1)
