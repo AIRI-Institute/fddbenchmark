@@ -160,6 +160,7 @@ class FDDDataloader():
     def __init__(
         self, 
         dataframe: pd.DataFrame, 
+        mask: pd.Series, 
         labels: pd.Series,
         window_size: int, 
         step_size: int, 
@@ -176,9 +177,9 @@ class FDDDataloader():
         assert self.step_size <= self.window_size
         sample_seq = []
         for run_id in tqdm(
-            self.df.index.get_level_values(0).unique(), 
+            self.labels[mask].index.get_level_values(0).unique(), 
             desc='Creating sequence of samples'):
-            _idx = self.df.index.get_locs([run_id])
+            _idx = self.labels[mask].index.get_locs([run_id])
             sample_seq.extend(
                 np.arange(_idx.min(), _idx.max() - self.window_size + 1, self.step_size)
             )
