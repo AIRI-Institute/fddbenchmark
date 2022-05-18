@@ -179,7 +179,7 @@ class FDDDataloader():
         for run_id in tqdm(
             self.labels[mask].index.get_level_values(0).unique(), 
             desc='Creating sequence of samples'):
-            _idx = self.labels[mask].index.get_locs([run_id])
+            _idx = self.labels.index.get_locs([run_id])
             sample_seq.extend(
                 np.arange(_idx.min(), _idx.max() - self.window_size + 1, self.step_size)
             )
