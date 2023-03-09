@@ -17,9 +17,9 @@ FDDBenchmark provides three datasets:
 
 | Dataset  | N of sensors | N of states (faults) | N of runs | Length of a run | Total size |
 | - | - | - | - | - | - |
-| rieth_tep  | 52  | 21 (20)  | 10500, 21000  | 960  | 1.84 GB |
+| rieth_tep  | 52  | 21 (20)  | 21000  | 500, 960  | 1.84 GB |
 | reinartz_tep  | 52  | 29 (28)  | 2800  | 2000  | 1.88 GB |
-| small_tep  | 52  | 21 (20)  | 105, 210  | 960  | 18.9 MB |
+| small_tep  | 52  | 21 (20)  | 210  | 500, 960  | 18.9 MB |
 
 ## Metrics
 
