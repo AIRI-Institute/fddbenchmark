@@ -4,7 +4,7 @@ Benchmarking fault detection and diagnosis methods.
 
 The benchmarking is a package for the Python containing 3 components: dataset, data loader, evaluator. 
 
-![fddbench_overview.png](readme_pics/fddbench_overview.png)
+![fddbench_overview.png](tutorial/fddbench_overview.png)
 
 The sensor data represented as the dataset is used for creating the data loader. The data loader is used for generating samples of sensor data. The evaluator takes the labels from testing data loader and labels predicted by a FDD model and reports values of metrics. The framework allows to train and test models efficiently in terms of memory and time costs due to the dynamic generation of samples.
 
