@@ -25,19 +25,19 @@ FDDBenchmark provides three datasets:
 
 The evaluation metrics can be divided into three groups: detection metrics, diagnostic metrics, clustering metrics (used in unsupervised setting).
 
-### Clustering metrics
-* **ACC**, Unsupervised Clustering Accuracy. It is similar to classification accuracy and calculated as maximum accuracy over all possible matching between cluster indices and ground truth labels.
-* **NMI**, Normalized Mutual Information. It is an information-theoretic measure that is equal to the mutual information between ground truth labels and cluster indices normalized by the average of their entropies.
-* **ARI**, Adjusted Rand Index. The Rand Index considers all pairs of samples and accounts the ratio of pairs with correct cluster index respectively to ground truth labels.
+### Detection metrics
+* **Detection TPR** and **Detection FPR**. TPR and FPR in the binary classification task where all faulty samples are positive and all normal samples are negative examples.
+* **ADD**, Average Detection Delay. The average number of samples between the first faulty sample and the first detected faulty sample. The averaging is performed among all faulty runs, excluding runs with undetected faults (false negative).
 
 ### Diagnostic metrics
 * **TPR_i**, True Positive Rate, aka Detection Rate. The number of detected faulty samples of the type i divided by the number of faulty samples of the type i.
 * **FPR_i**, False Positive Rate, aka False Alarm Rate. The number of false alarms of the type i divided by the number of normal samples.
 * **CDR**, Correct Diagnosis Rate. The total number of correctly diagnosed faulty samples divided by the number of detected faulty samples.
 
-### Detection metrics
-* **Detection TPR** and **Detection FPR**. TPR and FPR in the binary classification task where all faulty samples are positive and all normal samples are negative examples.
-* **ADD**, Average Detection Delay. The average number of samples between the first faulty sample and the first detected faulty sample. The averaging is performed among all faulty runs, excluding runs with undetected faults (false negative).
+### Clustering metrics
+* **ACC**, Unsupervised Clustering Accuracy. It is similar to classification accuracy and calculated as maximum accuracy over all possible matching between cluster indices and ground truth labels.
+* **NMI**, Normalized Mutual Information. It is an information-theoretic measure that is equal to the mutual information between ground truth labels and cluster indices normalized by the average of their entropies.
+* **ARI**, Adjusted Rand Index. The Rand Index considers all pairs of samples and accounts the ratio of pairs with correct cluster index respectively to ground truth labels.
 
 ## Installing
 
