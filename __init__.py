@@ -9,9 +9,8 @@ import os
 import requests
 
 class FDDDataset():
-    def __init__(self, name: str, splitting_type: str):
+    def __init__(self, name: str,):
         self.name = name
-        self.splitting_type = splitting_type
         self.df = None
         self.labels = None
         self.train_mask = None
@@ -45,16 +44,6 @@ class FDDDataset():
         test_mask = read_csv_pgbar(ref_path + 'test_mask.csv', index_col=['run_id', 'sample'])['test_mask']
         self.train_mask = train_mask.astype('boolean')
         self.test_mask = test_mask.astype('boolean')
-        
-        if self.splitting_type == 'supervised':
-            pass
-        if self.splitting_type == 'unsupervised':
-            self.labels[self.train_mask] = np.nan
-        if self.splitting_type == 'semisupervised':
-            unlabeled_train_mask = read_csv_pgbar(
-                ref_path + 'unlabeled_train_mask.csv', 
-                index_col=['run_id', 'sample'])['unlabeled_train_mask']
-            self.labels.loc[unlabeled_train_mask.astype('boolean')] = np.nan
     
     def load_reinartz_tep(self):
         ref_path = 'data/reinartz_tep/'
@@ -72,16 +61,6 @@ class FDDDataset():
         test_mask = read_csv_pgbar(ref_path + 'test_mask.csv', index_col=['run_id', 'sample'])['test_mask']
         self.train_mask = train_mask.astype('boolean')
         self.test_mask = test_mask.astype('boolean')
-        
-        if self.splitting_type == 'supervised':
-            pass
-        if self.splitting_type == 'unsupervised':
-            self.labels[self.train_mask] = np.nan
-        if self.splitting_type == 'semisupervised':
-            labeled_train_mask = read_csv_pgbar(
-                ref_path + 'labeled_train_mask.csv', 
-                index_col=['run_id', 'sample'])['labeled_train_mask']
-            self.labels.loc[~labeled_train_mask.astype('boolean')] = np.nan
 
     def load_rieth_tep(self):
         ref_path = 'data/rieth_tep/'
@@ -99,16 +78,6 @@ class FDDDataset():
         test_mask = read_csv_pgbar(ref_path + 'test_mask.csv', index_col=['run_id', 'sample'])['test_mask']
         self.train_mask = train_mask.astype('boolean')
         self.test_mask = test_mask.astype('boolean')
-        
-        if self.splitting_type == 'supervised':
-            pass
-        if self.splitting_type == 'unsupervised':
-            self.labels[self.train_mask] = np.nan
-        if self.splitting_type == 'semisupervised':
-            labeled_train_mask = read_csv_pgbar(
-                ref_path + 'labeled_train_mask.csv', 
-                index_col=['run_id', 'sample'])['labeled_train_mask']
-            self.labels.loc[~labeled_train_mask.astype('boolean')] = np.nan
 
 def extracting_files(zfile_path, ref_path):
     with zipfile.ZipFile(zfile_path, 'r') as zfile:
@@ -224,8 +193,7 @@ class FDDDataloader():
             raise StopIteration
 
 class FDDEvaluator():
-    def __init__(self, splitting_type: str, step_size: int):
-        self.splitting_type = splitting_type
+    def __init__(self, step_size: int):
         self.step_size = step_size
         
     def evaluate(self, labels, pred):
