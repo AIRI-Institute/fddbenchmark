@@ -10,7 +10,7 @@ setup(
     license='MIT License',
     packages=['fddbenchmark'],
     install_requires=[
-        'numpy>=1.22', 
+        'numpy>=1.21', 
         'pandas>=1.3', 
         'scikit-learn>=1.2',
         'tqdm>=4.65',
