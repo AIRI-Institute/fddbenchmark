@@ -127,11 +127,12 @@ def download_pgbar(url, zfile_path, fname):
 
 def read_csv_pgbar(csv_path, index_col, chunksize=1024*100):
     rows = sum(1 for _ in open(csv_path, 'r')) - 1
-    df = pd.read_csv(csv_path, index_col=index_col, nrows=1).iloc[:0]
+    chunk_list = []
     with tqdm(total=rows, desc=f'Reading {csv_path}') as pbar:
         for chunk in pd.read_csv(csv_path, index_col=index_col, chunksize=chunksize):
-            df = pd.concat([df, chunk], axis=0)
+            chunk_list.append(chunk)
             pbar.update(len(chunk))
+    df = pd.concat((f for f in chunk_list), axis=0)
     return df
 
 class FDDDataloader():
