@@ -3,5 +3,5 @@ __pycache__/*
 fddbenchmark.egg-info/*
 build/*
 data/*
-.ipynb_checkpoints/*
+**/.ipynb_checkpoints/*
 **/__pycache__/*

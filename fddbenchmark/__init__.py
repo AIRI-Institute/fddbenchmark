@@ -243,23 +243,28 @@ class FDDEvaluator():
         metrics['clustering']['ARI'] = adjusted_rand_score(labels.values, pred.values)
         return metrics
     
-    def print_metrics(self, labels, pred):
+    def str_metrics(self, labels, pred):
         metrics = self.evaluate(labels, pred)
-        print('FDD metrics\n-----------------')
+        str_metrics = []
+        str_metrics.append('FDD metrics\n-----------------')
         
-        print('TPR/FPR:')
+        str_metrics.append('TPR/FPR:')
         for i in np.arange(labels.max()).astype('int'):
-            print('    Fault {:02d}: {:.4f}/{:.4f}'.format(i+1, metrics['classification']['TPR'][i+1], metrics['classification']['FPR'][i+1]))
+            str_metrics.append('    Fault {:02d}: {:.4f}/{:.4f}'.format(i+1, metrics['classification']['TPR'][i+1], metrics['classification']['FPR'][i+1]))
 
-        print('Detection TPR: {:.4f}'.format(metrics['detection']['TPR']))
-        print('Detection FPR: {:.4f}'.format(metrics['detection']['FPR']))
-        print('Average Detection Delay (ADD): {:.2f}'.format(metrics['detection']['ADD']))
-        print('Total Correct Diagnosis Rate (Total CDR): {:.4f}'.format(metrics['diagnosis']['CDR_total']))
+        str_metrics.append('Detection TPR: {:.4f}'.format(metrics['detection']['TPR']))
+        str_metrics.append('Detection FPR: {:.4f}'.format(metrics['detection']['FPR']))
+        str_metrics.append('Average Detection Delay (ADD): {:.2f}'.format(metrics['detection']['ADD']))
+        str_metrics.append('Total Correct Diagnosis Rate (Total CDR): {:.4f}'.format(metrics['diagnosis']['CDR_total']))
 
-        print('\nClustering metrics\n-----------------')
-        print('Adjusted Rand Index (ARI): {:.4f}'.format(metrics['clustering']['ARI']))
-        print('Normalized Mutual Information (NMI): {:.4f}'.format(metrics['clustering']['NMI']))
-        print('Unsupervised Clustering Accuracy (ACC): {:.4f}'.format(metrics['clustering']['ACC']))
+        str_metrics.append('\nClustering metrics\n-----------------')
+        str_metrics.append('Adjusted Rand Index (ARI): {:.4f}'.format(metrics['clustering']['ARI']))
+        str_metrics.append('Normalized Mutual Information (NMI): {:.4f}'.format(metrics['clustering']['NMI']))
+        str_metrics.append('Unsupervised Clustering Accuracy (ACC): {:.4f}'.format(metrics['clustering']['ACC']))
+        return '\n'.join(str_metrics)
+
+    def print_metrics(self, labels, pred):
+        print(self.str_metrics(labels, pred))
 
 def cluster_acc(y_true, y_pred):
     """
