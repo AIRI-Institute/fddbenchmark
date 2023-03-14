@@ -155,8 +155,9 @@ class FDDDataloader():
         self.step_size = step_size
         assert self.step_size <= self.window_size
         sample_seq = []
+        runs = self.labels[mask].index.get_level_values(0).unique()
         for run_id in tqdm(
-            self.labels[mask].index.get_level_values(0).unique(), 
+            runs, 
             desc='Creating sequence of samples'):
             _idx = self.labels.index.get_locs([run_id])
             sample_seq.extend(
