@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='fddbenchmark',
-    version='0.0.1',    
+    version='0.0.2',    
     description='Benchmarking fault detection and diagnosis methods',
     url='https://github.com/airi-industrial-ai/fddbenchmark',
     author='Vitaliy Pozdnyakov',
