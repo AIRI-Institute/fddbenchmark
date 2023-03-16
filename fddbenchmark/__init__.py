@@ -146,6 +146,7 @@ class FDDDataloader():
         minibatch_training=False, 
         batch_size=0, 
         shuffle=False,
+        random_state=None,
     ):
         assert batch_size if minibatch_training else True
         self.df = dataframe
@@ -163,6 +164,8 @@ class FDDDataloader():
             sample_seq.extend(
                 np.arange(_idx.min(), _idx.max() - self.window_size + 1, self.step_size)
             )
+        if random_state is not None:
+            np.random.seed(random_state)
         self.sample_seq = np.random.permutation(sample_seq) if shuffle else np.array(sample_seq)
         n_samples = len(sample_seq)
         batch_seq = list(range(0, n_samples, batch_size)) if minibatch_training else [0]
