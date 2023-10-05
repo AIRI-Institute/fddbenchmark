@@ -183,28 +183,32 @@ class FDDDataloader():
 
     def __next__(self):
         if self.iter < self.n_batches:
-            # preparing batch of labels
-            sample_ids = self.sample_seq[self.batch_seq[self.iter]:self.batch_seq[self.iter+1]]
-            row_idx = np.tile(sample_ids[:, None], (1, self.window_size)) + np.arange(self.window_size)
-            row_isna = np.isnan(self.labels.values[row_idx]).min(axis=1)
-            labels_batch = np.zeros(row_isna.shape[0])
-            labels_batch[row_isna] = np.nan
-            if ~row_isna.any():
-                # maximum label reduction: if at least a single value is fault
-                # then the entire sample is fault
-                labels_batch[~row_isna] = self.labels.values[row_idx][~row_isna].max(axis=1)
-            # an index of a sample is an index of the last time stamp in the sample
-            index_batch = self.labels.index[row_idx.max(axis=1)]
-            labels_batch = pd.Series(labels_batch, name='labels', index=index_batch)
-            # preparing batch of time series
-            row_idx = np.tile(row_idx[..., None], (1, 1, self.df.shape[1]))
-            col_idx = np.arange(self.df.shape[1])[None, None, :]
-            col_idx = np.tile(col_idx, (row_idx.shape[0], self.window_size, 1))
-            ts_batch = self.df.values[row_idx, col_idx]
+            ts_batch, batch_index, labels_batch = self.__getitem__(self.iter)
             self.iter += 1
-            return ts_batch, labels_batch.index, labels_batch
+            return ts_batch, batch_index, labels_batch
         else:
             raise StopIteration
+
+    def __getitem__(self, idx):
+        sample_ids = self.sample_seq[self.batch_seq[idx]:self.batch_seq[idx+1]]
+        row_idx = np.tile(sample_ids[:, None], (1, self.window_size)) + np.arange(self.window_size)
+        row_isna = np.isnan(self.labels.values[row_idx]).min(axis=1)
+        labels_batch = np.zeros(row_isna.shape[0])
+        labels_batch[row_isna] = np.nan
+        if ~row_isna.any():
+            # maximum label reduction: if at least a single value is fault
+            # then the entire sample is fault
+            labels_batch[~row_isna] = self.labels.values[row_idx][~row_isna].max(axis=1)
+        # an index of a sample is an index of the last time stamp in the sample
+        index_batch = self.labels.index[row_idx.max(axis=1)]
+        labels_batch = pd.Series(labels_batch, name='labels', index=index_batch)
+        # preparing batch of time series
+        row_idx = np.tile(row_idx[..., None], (1, 1, self.df.shape[1]))
+        col_idx = np.arange(self.df.shape[1])[None, None, :]
+        col_idx = np.tile(col_idx, (row_idx.shape[0], self.window_size, 1))
+        ts_batch = self.df.values[row_idx, col_idx]
+        return ts_batch, labels_batch.index, labels_batch
+
 
 class FDDEvaluator():
     def __init__(self, step_size: int):
