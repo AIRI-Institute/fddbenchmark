@@ -22,7 +22,7 @@ FDDBenchmark provides three datasets:
 | rieth_tep  | 52  | 21 (20)  | 21000  | 500, 960  | 1.84 GB |
 | reinartz_tep  | 52  | 29 (28)  | 2800  | 2000  | 1.88 GB |
 | small_tep  | 52  | 21 (20)  | 210  | 500, 960  | 18.9 MB |
-| lessmeier_bearing  | 1  | 3 (2)  | 220  | 256 000  | 462 MB |
+| lessmeier_bearing  | 1  | 3 (2)  | 220  | 256 000  | 755 MB |
 
 ## Metrics
 
