@@ -4,7 +4,7 @@ fddbenchmark.
 Benchmarking fault detection and diagnosis methods.
 """
 
-__version__ = "0.0.2"
+__version__ = '0.0.3'
 __author__ = 'Vitaliy Pozdnyakov, Mikhail Goncharov, Platon Ivanov'
 __credits__ = 'AIRI'
 
