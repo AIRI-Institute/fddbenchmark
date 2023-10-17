@@ -2,10 +2,10 @@ from setuptools import setup
 
 setup(
     name='fddbenchmark',
-    version='0.0.2',    
+    version='0.0.3',    
     description='Benchmarking fault detection and diagnosis methods',
     url='https://github.com/airi-industrial-ai/fddbenchmark',
-    author='Vitaliy Pozdnyakov',
+    author='Vitaliy Pozdnyakov, Mikhail Goncharov, Platon Ivanov'
     author_email='pozdnyakov@airi.net',
     license='MIT License',
     packages=['fddbenchmark'],
