@@ -14,12 +14,15 @@ FDDBenchmark provides three datasets:
 1. `rieth_tep`. Dataset of Tennessee Eastman Process based on the dataset _Rieth, C. A., Amsel, B. D., Tran, R., & Cook, M. B. (2017). Additional Tennessee Eastman Process Simulation Data for Anomaly Detection Evaluation (Version V1) [Computer software]. Harvard Dataverse. https://doi.org/10.7910/DVN/6C3JR1_
 2. `reinartz_tep`. Dataset of Tennessee Eastman Process based on the paper _Reinartz, C., Kulahci, M., & Ravn, O. (2021). An extended Tennessee Eastman simulation dataset for fault-detection and decision support systems. Computers & Chemical Engineering, 149, 107281_. The dataset can be found in https://web.mit.edu/braatzgroup/links.html.
 3. `small_tep`. Cropped version of `rieth_tep`.
+4. `lessmeier_bearing`. Dataset of bearing vibration, based on the paper _Lessmeier, Christian, et al. "Condition monitoring of bearing damage in electromechanical drive systems by using motor current signals of electric motors: A benchmark data set for data-driven classification." PHM Society European Conference. Vol. 3. No. 1. 2016_. The dataset can be found in http://groups.uni-paderborn.de/kat/BearingDataCenter/.
+
 
 | Dataset  | N of sensors | N of states (faults) | N of runs | Length of a run | Total size |
 | - | - | - | - | - | - |
 | rieth_tep  | 52  | 21 (20)  | 21000  | 500, 960  | 1.84 GB |
 | reinartz_tep  | 52  | 29 (28)  | 2800  | 2000  | 1.88 GB |
 | small_tep  | 52  | 21 (20)  | 210  | 500, 960  | 18.9 MB |
+| lessmeier_bearing  | 1  | 3 (2)  | 220  | 256 000  | 462 MB |
 
 ## Metrics
 

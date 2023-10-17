@@ -6,3 +6,4 @@ data/*
 **/.ipynb_checkpoints/*
 **/__pycache__/*
 .vscode/*
+tutorial/data/*
