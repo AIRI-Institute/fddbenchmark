@@ -5,7 +5,7 @@ setup(
     version='0.0.3',    
     description='Benchmarking fault detection and diagnosis methods',
     url='https://github.com/airi-industrial-ai/fddbenchmark',
-    author='Vitaliy Pozdnyakov, Mikhail Goncharov, Platon Ivanov',
+    author='Vitaliy Pozdnyakov, Mikhail Goncharov, Platon Gogol',
     author_email='pozdnyakov@airi.net',
     license='MIT License',
     packages=['fddbenchmark'],
