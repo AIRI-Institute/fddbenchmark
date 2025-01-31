@@ -2,6 +2,7 @@ from typing import Optional
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
+import torch
 
 
 class FDDDataloader:
@@ -17,6 +18,9 @@ class FDDDataloader:
             batch_size: Optional[int] = None,
             shuffle: bool = False,
             random_state: Optional[int] = None,
+            data_framework: str = 'numpy',
+            device: str = 'cpu',
+            disable_index: bool = False,
     ) -> None:
         if dataframe.index.names != ['run_id', 'sample']:
             raise ValueError("``dataframe`` must have multi-index ('run_id', 'sample')")
@@ -30,10 +34,15 @@ class FDDDataloader:
         if use_minibatches and batch_size is None:
             raise ValueError("If you set ``use_minibatches=True``, "
                              "you must set ``batch_size`` to a positive number.")
+        
+        if data_framework not in ['numpy', 'torch']:
+            raise ValueError("``data_framework`` must be in ('numpy', 'torch')")
 
         self.df_values = dataframe.values
         self.label_values = label.values
-        self.index = label.index
+        self.disable_index = disable_index
+        if not disable_index:
+            self.index = label.index
         self.window_size = window_size
         self.dilation = dilation
         self.step_size = step_size
@@ -58,6 +67,12 @@ class FDDDataloader:
         self.batch_seq = np.array(batch_seq)
         self.n_batches = len(batch_seq) - 1
 
+        if data_framework == 'torch':
+            self.batch_seq = torch.tensor(self.batch_seq, device=device)
+            self.df_values = torch.tensor(self.df_values, device=device)
+            self.label_values = torch.tensor(self.label_values, device=device)
+            self.batch_seq = torch.tensor(self.batch_seq, device=device)
+
     def __len__(self):
         return self.n_batches
     
@@ -79,6 +94,8 @@ class FDDDataloader:
 
         ts_batch = self.df_values[windows_indices]  # (batch_size, window_size, ts_dim)
         label_batch = self.label_values[ends_indices]
-        index_batch = self.index[ends_indices]
+        index_batch = None
+        if not self.disable_index:
+            index_batch = self.index[ends_indices]
 
         return ts_batch, index_batch, label_batch
