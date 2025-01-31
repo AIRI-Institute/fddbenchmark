@@ -68,10 +68,10 @@ class FDDDataloader:
         self.n_batches = len(batch_seq) - 1
 
         if data_framework == 'torch':
-            self.batch_seq = torch.tensor(self.batch_seq, device=device)
-            self.df_values = torch.tensor(self.df_values, device=device)
-            self.label_values = torch.tensor(self.label_values, device=device)
-            self.batch_seq = torch.tensor(self.batch_seq, device=device)
+            self.batch_seq = torch.tensor(self.batch_seq, device=device, dtype=torch.float64)
+            self.df_values = torch.tensor(self.df_values, device=device, dtype=torch.long)
+            self.label_values = torch.tensor(self.label_values, device=device, dtype=torch.long)
+            self.batch_seq = torch.tensor(self.batch_seq, device=device, dtype=torch.long)
 
     def __len__(self):
         return self.n_batches
