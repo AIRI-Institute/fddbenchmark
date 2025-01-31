@@ -31,8 +31,9 @@ class FDDDataloader:
             raise ValueError("If you set ``use_minibatches=True``, "
                              "you must set ``batch_size`` to a positive number.")
 
-        self.df = dataframe
-        self.label = label
+        self.df_values = dataframe.values
+        self.label_values = label.values
+        self.index = label.index
         self.window_size = window_size
         self.dilation = dilation
         self.step_size = step_size
@@ -76,8 +77,8 @@ class FDDDataloader:
         ends_indices = self.window_end_indices[self.batch_seq[idx]:self.batch_seq[idx + 1]]
         windows_indices = ends_indices[:, None] - np.arange(0, self.window_size, self.dilation)[::-1]
 
-        ts_batch = self.df.values[windows_indices]  # (batch_size, window_size, ts_dim)
-        label_batch = self.label.values[ends_indices]
-        index_batch = self.label.index[ends_indices]
+        ts_batch = self.df_values[windows_indices]  # (batch_size, window_size, ts_dim)
+        label_batch = self.label_values[ends_indices]
+        index_batch = self.index[ends_indices]
 
         return ts_batch, index_batch, label_batch
