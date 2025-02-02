@@ -15,6 +15,7 @@ setup(
         'scikit-learn>=1.0',
         'tqdm>=4.65',
         'requests',
+        'torch',
     ],
 
     classifiers=[
